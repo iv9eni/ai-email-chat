@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: "processor"
+  mail:
+    host: "smtp.example.com"
+    port: 587
+    username: "email@email.com"
+    password: "password"
+    properties:
+      smtp:
+        auth: true
+        starttls:
+          enable: true
+
