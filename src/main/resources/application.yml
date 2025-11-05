@@ -44,3 +44,43 @@ ollama:
   base-url: http://localhost:11434
   model: llama3.2
 
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    ai.email.processor: DEBUG
+    ai.email.processor.service.EmailReceiverService: DEBUG
+    ai.email.processor.service.EmailSenderService: DEBUG
+    ai.email.processor.service.ConversationService: DEBUG
+    org.springframework.ai: DEBUG
+    # Uncomment for JavaMail debug output
+    # jakarta.mail: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/ai-email-chat.log
+    max-size: 10MB
+    max-history: 7
+
+# Spring Boot Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers,scheduledtasks
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+# Application info for actuator
+info:
+  app:
+    name: AI Email Chat Service
+    description: Email-to-AI automation service with Ollama
+    version: 0.0.1-SNAPSHOT
+

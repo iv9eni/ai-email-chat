@@ -52,4 +52,9 @@ public class WebController {
             })
             .orElse("redirect:/accounts");
     }
+
+    @GetMapping("/monitoring")
+    public String monitoring() {
+        return "monitoring";
+    }
 }
