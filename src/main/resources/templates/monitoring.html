@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Monitoring</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .nav-link {
+            color: #667eea;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .stat:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            color: #666;
+        }
+        .stat-value {
+            font-weight: 600;
+            color: #333;
+        }
+        .accounts-grid {
+            display: grid;
+            gap: 15px;
+        }
+        .account-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+        .account-card.inactive {
+            border-left-color: #dc3545;
+            opacity: 0.7;
+        }
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .account-email {
+            font-weight: 600;
+            color: #333;
+        }
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background: #5568d3;
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .test-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .test-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-result-detail {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .logs-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .log-info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .log-info p {
+            margin: 5px 0;
+            color: #004085;
+        }
+        .actuator-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        .actuator-link {
+            padding: 8px 16px;
+            background: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .actuator-link:hover {
+            background: #5a6268;
+        }
+        code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Service Monitoring</h1>
+            </div>
+            <div>
+                <a href="/" class="nav-link">Home</a>
+                <a href="/accounts" class="nav-link">Accounts</a>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="card">
+                <h2>System Status</h2>
+                <div id="systemStatus" class="loading">Loading...</div>
+            </div>
+
+            <div class="card">
+                <h2>Service Info</h2>
+                <div class="stat">
+                    <span class="stat-label">Application</span>
+                    <span class="stat-value">AI Email Chat</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Version</span>
+                    <span class="stat-value">0.0.1-SNAPSHOT</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Poll Interval</span>
+                    <span class="stat-value">60 seconds</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Subject Filter</span>
+                    <span class="stat-value">[AI_REQUEST]</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Monitoring Links</h2>
+                <div class="actuator-links">
+                    <a href="/actuator/health" target="_blank" class="actuator-link">Health</a>
+                    <a href="/actuator/info" target="_blank" class="actuator-link">Info</a>
+                    <a href="/actuator/metrics" target="_blank" class="actuator-link">Metrics</a>
+                    <a href="/actuator/scheduledtasks" target="_blank" class="actuator-link">Scheduled Tasks</a>
+                    <a href="/actuator/loggers" target="_blank" class="actuator-link">Loggers</a>
+                    <a href="/h2-console" target="_blank" class="actuator-link">H2 Console</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Email Accounts</h2>
+            <div id="accountsGrid" class="accounts-grid loading">Loading accounts...</div>
+        </div>
+
+        <div class="logs-section">
+            <h2>Logging Information</h2>
+            <div class="log-info">
+                <p><strong>Log File:</strong> <code>logs/ai-email-chat.log</code></p>
+                <p><strong>Log Level:</strong> DEBUG for all email services</p>
+                <p><strong>View Logs:</strong> Use <code>tail -f logs/ai-email-chat.log</code> in terminal</p>
+                <p><strong>Watch Processing:</strong> Look for lines with ✓ (success) and ✗ (error) markers</p>
+            </div>
+
+            <h3 style="margin-top: 20px; margin-bottom: 10px;">Key Log Messages to Watch:</h3>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                <p style="margin: 5px 0;"><strong>=== Starting email check cycle ===</strong> - Poll beginning</p>
+                <p style="margin: 5px 0;"><strong>✓ Successfully connected to IMAP</strong> - Connection OK</p>
+                <p style="margin: 5px 0;"><strong>✓ Message matches filter!</strong> - Processing AI request</p>
+                <p style="margin: 5px 0;"><strong>✓ AI response sent successfully</strong> - Email replied</p>
+                <p style="margin: 5px 0;"><strong>✗ Authentication failed</strong> - Check credentials/2FA</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/diagnostics/status');
+                const data = await response.json();
+
+                const statusHtml = `
+                    <div class="stat">
+                        <span class="stat-label">Total Accounts</span>
+                        <span class="stat-value">${data.totalAccounts}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Active Accounts</span>
+                        <span class="stat-value">${data.activeAccounts}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Last Updated</span>
+                        <span class="stat-value">${new Date(data.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                `;
+
+                document.getElementById('systemStatus').innerHTML = statusHtml;
+
+                // Load accounts
+                loadAccounts(data.accounts);
+            } catch (error) {
+                document.getElementById('systemStatus').innerHTML =
+                    '<p style="color: #dc3545;">Error loading status</p>';
+            }
+        }
+
+        function loadAccounts(accounts) {
+            if (accounts.length === 0) {
+                document.getElementById('accountsGrid').innerHTML =
+                    '<p style="text-align: center; color: #666;">No accounts configured</p>';
+                return;
+            }
+
+            let html = '';
+            for (const account of accounts) {
+                html += `
+                    <div class="account-card ${account.active ? '' : 'inactive'}">
+                        <div class="account-header">
+                            <span class="account-email">${account.email}</span>
+                            <span class="status-badge ${account.active ? 'status-active' : 'status-inactive'}">
+                                ${account.active ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                        <div style="font-size: 14px; color: #666; margin: 5px 0;">
+                            <div>IMAP: ${account.imapHost}</div>
+                            <div>SMTP: ${account.smtpHost}</div>
+                        </div>
+                        <button class="btn btn-sm" onclick="testConnection(${account.id}, '${account.email}')">
+                            Test Connection
+                        </button>
+                        <div id="test-result-${account.id}"></div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('accountsGrid').innerHTML = html;
+        }
+
+        async function testConnection(accountId, email) {
+            const resultDiv = document.getElementById(`test-result-${accountId}`);
+            resultDiv.innerHTML = '<div class="loading">Testing connections...</div>';
+
+            try {
+                const response = await fetch(`/api/diagnostics/test-connection/${accountId}`);
+                const data = await response.json();
+
+                let html = '<div class="test-result ' +
+                    (data.overallStatus === 'SUCCESS' ? 'test-success' : 'test-error') + '">';
+
+                html += `<strong>Overall: ${data.overallStatus}</strong>`;
+
+                // IMAP results
+                html += '<div class="test-result-detail">';
+                html += `<strong>IMAP:</strong> ${data.imap.success ? '✓ Success' : '✗ Failed'}<br>`;
+                if (data.imap.success) {
+                    html += `Messages: ${data.imap.totalMessages} (${data.imap.unreadMessages} unread)`;
+                } else {
+                    html += `Error: ${data.imap.message}`;
+                    if (data.imap.details) {
+                        html += `<br><small>${data.imap.details}</small>`;
+                    }
+                }
+                html += '</div>';
+
+                // SMTP results
+                html += '<div class="test-result-detail">';
+                html += `<strong>SMTP:</strong> ${data.smtp.success ? '✓ Success' : '✗ Failed'}<br>`;
+                if (!data.smtp.success) {
+                    html += `Error: ${data.smtp.message}`;
+                    if (data.smtp.details) {
+                        html += `<br><small>${data.smtp.details}</small>`;
+                    }
+                }
+                html += '</div>';
+
+                html += '</div>';
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="test-result test-error">Error testing connection</div>';
+            }
+        }
+
+        // Load status on page load
+        loadSystemStatus();
+
+        // Refresh status every 30 seconds
+        setInterval(loadSystemStatus, 30000);
+    </script>
+</body>
+</html>
