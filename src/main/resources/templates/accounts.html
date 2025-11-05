@@ -131,10 +131,18 @@
             background: white;
             padding: 30px;
             border-radius: 8px;
-            max-width: 500px;
+            max-width: 1000px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) {
+            .modal-content {
+                grid-template-columns: 1fr;
+            }
         }
         .form-group {
             margin-bottom: 15px;
@@ -175,6 +183,75 @@
         }
         .preset-btn:hover {
             background: #5a6268;
+        }
+        .preset-btn.active {
+            background: #667eea;
+        }
+        .help-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .help-panel h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        .help-panel h4 {
+            color: #667eea;
+            font-size: 14px;
+            margin: 15px 0 8px 0;
+            font-weight: 600;
+        }
+        .help-panel ol, .help-panel ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .help-panel li {
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .help-panel a {
+            color: #667eea;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        .help-panel a:hover {
+            text-decoration: underline;
+        }
+        .help-panel code {
+            font-size: 12px;
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        .help-warning {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .help-success {
+            background: #d4edda;
+            border-left: 3px solid #28a745;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .form-column {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-column h2 {
+            margin-top: 0;
         }
     </style>
 </head>
@@ -232,57 +309,67 @@
     <!-- Add Account Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
-            <h2>Add Email Account</h2>
+            <!-- Form Column -->
+            <div class="form-column">
+                <h2>Add Email Account</h2>
 
-            <div class="preset-buttons">
-                <button class="preset-btn" onclick="fillGmail()">Gmail</button>
-                <button class="preset-btn" onclick="fillOutlook()">Outlook</button>
-                <button class="preset-btn" onclick="fillYahoo()">Yahoo</button>
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="fillGmail()">Gmail</button>
+                    <button class="preset-btn" onclick="fillOutlook()">Outlook</button>
+                    <button class="preset-btn" onclick="fillYahoo()">Yahoo</button>
+                </div>
+
+                <form id="addForm" onsubmit="return addAccount(event)">
+                    <div class="form-group">
+                        <label>Display Name *</label>
+                        <input type="text" name="displayName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address *</label>
+                        <input type="email" name="emailAddress" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Username *</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password *</label>
+                        <input type="password" name="password" required>
+                        <small style="color: #666;">Use app-specific password for Gmail/Outlook/Yahoo</small>
+                    </div>
+                    <div class="form-group">
+                        <label>IMAP Host *</label>
+                        <input type="text" name="imapHost" required>
+                    </div>
+                    <div class="form-group">
+                        <label>IMAP Port *</label>
+                        <input type="number" name="imapPort" value="993" required>
+                    </div>
+                    <div class="form-group">
+                        <label>SMTP Host *</label>
+                        <input type="text" name="smtpHost" required>
+                    </div>
+                    <div class="form-group">
+                        <label>SMTP Port *</label>
+                        <input type="number" name="smtpPort" value="587" required>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="useSSL" checked> Use SSL
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn" style="background: #6c757d;" onclick="closeAddModal()">Cancel</button>
+                        <button type="submit" class="btn">Add Account</button>
+                    </div>
+                </form>
             </div>
 
-            <form id="addForm" onsubmit="return addAccount(event)">
-                <div class="form-group">
-                    <label>Display Name *</label>
-                    <input type="text" name="displayName" required>
-                </div>
-                <div class="form-group">
-                    <label>Email Address *</label>
-                    <input type="email" name="emailAddress" required>
-                </div>
-                <div class="form-group">
-                    <label>Username *</label>
-                    <input type="text" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label>Password *</label>
-                    <input type="password" name="password" required>
-                </div>
-                <div class="form-group">
-                    <label>IMAP Host *</label>
-                    <input type="text" name="imapHost" required>
-                </div>
-                <div class="form-group">
-                    <label>IMAP Port *</label>
-                    <input type="number" name="imapPort" value="993" required>
-                </div>
-                <div class="form-group">
-                    <label>SMTP Host *</label>
-                    <input type="text" name="smtpHost" required>
-                </div>
-                <div class="form-group">
-                    <label>SMTP Port *</label>
-                    <input type="number" name="smtpPort" value="587" required>
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="useSSL" checked> Use SSL
-                    </label>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn" style="background: #6c757d;" onclick="closeAddModal()">Cancel</button>
-                    <button type="submit" class="btn">Add Account</button>
-                </div>
-            </form>
+            <!-- Help Column -->
+            <div class="help-panel" id="helpPanel">
+                <h3>📖 Setup Instructions</h3>
+                <p style="color: #666; font-size: 14px;">Select a provider above to see specific setup instructions.</p>
+            </div>
         </div>
     </div>
 
@@ -303,6 +390,10 @@
             form.smtpHost.value = 'smtp.gmail.com';
             form.smtpPort.value = '587';
             form.useSSL.checked = true;
+
+            // Update help panel
+            showHelp('gmail');
+            setActiveButton('gmail');
         }
 
         function fillOutlook() {
@@ -311,14 +402,11 @@
             form.imapPort.value = '993';
             form.smtpHost.value = 'smtp.office365.com';
             form.smtpPort.value = '587';
-            form.useSSL.checked = true;  // For IMAP 993; SMTP 587 uses STARTTLS automatically
-            alert('IMPORTANT for Outlook/Hotmail:\n\n' +
-                  '1. Enable IMAP in Outlook settings\n' +
-                  '2. Generate an App Password at:\n' +
-                  '   account.microsoft.com/security\n' +
-                  '3. Use your EMAIL as username\n' +
-                  '4. Use APP PASSWORD (not your regular password)\n\n' +
-                  'IMAP must be enabled in your Outlook.com settings!');
+            form.useSSL.checked = true;
+
+            // Update help panel
+            showHelp('outlook');
+            setActiveButton('outlook');
         }
 
         function fillYahoo() {
@@ -328,6 +416,138 @@
             form.smtpHost.value = 'smtp.mail.yahoo.com';
             form.smtpPort.value = '587';
             form.useSSL.checked = true;
+
+            // Update help panel
+            showHelp('yahoo');
+            setActiveButton('yahoo');
+        }
+
+        function setActiveButton(provider) {
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function showHelp(provider) {
+            const helpPanel = document.getElementById('helpPanel');
+            const helpContent = {
+                gmail: `
+                    <h3>📧 Gmail Setup</h3>
+
+                    <div class="help-warning">
+                        <strong>⚠️ Important:</strong> You must use an App Password, not your regular Gmail password!
+                    </div>
+
+                    <h4>Step 1: Enable 2-Factor Authentication</h4>
+                    <ol>
+                        <li>If not already enabled, set up 2FA on your Google account</li>
+                    </ol>
+
+                    <h4>Step 2: Generate App Password</h4>
+                    <ol>
+                        <li>Visit: <a href="https://myaccount.google.com/apppasswords" target="_blank">myaccount.google.com/apppasswords</a></li>
+                        <li>Sign in to your Google account</li>
+                        <li>Select app: <strong>Mail</strong></li>
+                        <li>Select device: <strong>Other (Custom name)</strong></li>
+                        <li>Enter a name like "AI Email Chat"</li>
+                        <li>Click <strong>Generate</strong></li>
+                        <li>Copy the 16-character password (spaces are optional)</li>
+                    </ol>
+
+                    <h4>Step 3: Fill Out Form</h4>
+                    <ul>
+                        <li><strong>Username:</strong> Your full Gmail address (e.g., <code>user@gmail.com</code>)</li>
+                        <li><strong>Password:</strong> The app password from step 2 (NOT your regular password)</li>
+                    </ul>
+
+                    <div class="help-success">
+                        <strong>✓ Settings Auto-Filled:</strong><br>
+                        • IMAP: imap.gmail.com:993<br>
+                        • SMTP: smtp.gmail.com:587<br>
+                        • SSL: Enabled
+                    </div>
+                `,
+                outlook: `
+                    <h3>📧 Outlook/Hotmail Setup</h3>
+
+                    <div class="help-warning">
+                        <strong>⚠️ Critical Steps:</strong> Must enable IMAP FIRST, then create app password!
+                    </div>
+
+                    <h4>Step 1: Enable IMAP (MUST DO FIRST!)</h4>
+                    <ol>
+                        <li>Go to: <a href="https://outlook.live.com/mail/0/options/mail/accounts" target="_blank">Outlook Settings → Sync Email</a></li>
+                        <li>Turn ON "<strong>Let devices and apps use POP</strong>" (this enables IMAP too)</li>
+                        <li><strong>Wait 5-10 minutes</strong> for IMAP to activate</li>
+                    </ol>
+
+                    <h4>Step 2: Generate App Password</h4>
+                    <ol>
+                        <li>Visit: <a href="https://account.microsoft.com/security" target="_blank">account.microsoft.com/security</a></li>
+                        <li>Click "<strong>Advanced security options</strong>"</li>
+                        <li>Find "<strong>App passwords</strong>" section</li>
+                        <li>Click "<strong>Create a new app password</strong>"</li>
+                        <li>Copy the password (format: <code>xxxx-xxxx-xxxx-xxxx</code>)</li>
+                    </ol>
+
+                    <h4>Step 3: Fill Out Form</h4>
+                    <ul>
+                        <li><strong>Username:</strong> Your full email (e.g., <code>user@hotmail.com</code> or <code>user@outlook.com</code>)</li>
+                        <li><strong>Password:</strong> The app password from step 2 (NOT your regular password)</li>
+                    </ul>
+
+                    <div class="help-success">
+                        <strong>✓ Settings Auto-Filled:</strong><br>
+                        • IMAP: outlook.office365.com:993<br>
+                        • SMTP: smtp.office365.com:587<br>
+                        • SSL: Enabled (Port 587 uses STARTTLS automatically)
+                    </div>
+
+                    <div class="help-warning">
+                        <strong>Common Issues:</strong><br>
+                        • "AUTHENTICATE failed" → IMAP not enabled or app password wrong<br>
+                        • "Could not connect" → Wait longer for IMAP activation
+                    </div>
+                `,
+                yahoo: `
+                    <h3>📧 Yahoo Mail Setup</h3>
+
+                    <div class="help-warning">
+                        <strong>⚠️ Important:</strong> You must use an App Password, not your regular Yahoo password!
+                    </div>
+
+                    <h4>Step 1: Generate App Password</h4>
+                    <ol>
+                        <li>Visit: <a href="https://login.yahoo.com/account/security" target="_blank">login.yahoo.com/account/security</a></li>
+                        <li>Sign in to your Yahoo account</li>
+                        <li>Scroll to "<strong>Generate app password</strong>"</li>
+                        <li>Select "<strong>Other App</strong>" from dropdown</li>
+                        <li>Enter a custom name like "AI Email Chat"</li>
+                        <li>Click "<strong>Generate</strong>"</li>
+                        <li>Copy the password shown (one-time only!)</li>
+                    </ol>
+
+                    <h4>Step 2: Fill Out Form</h4>
+                    <ul>
+                        <li><strong>Username:</strong> Your full Yahoo email (e.g., <code>user@yahoo.com</code>)</li>
+                        <li><strong>Password:</strong> The app password from step 1 (NOT your regular password)</li>
+                    </ul>
+
+                    <div class="help-success">
+                        <strong>✓ Settings Auto-Filled:</strong><br>
+                        • IMAP: imap.mail.yahoo.com:993<br>
+                        • SMTP: smtp.mail.yahoo.com:587<br>
+                        • SSL: Enabled
+                    </div>
+
+                    <div class="help-warning">
+                        <strong>Note:</strong> Yahoo Mail requires IMAP to be enabled. It should be enabled by default, but check Account Settings if connection fails.
+                    </div>
+                `
+            };
+
+            helpPanel.innerHTML = helpContent[provider] || '<p>Select a provider to see setup instructions.</p>';
         }
 
         async function addAccount(event) {
