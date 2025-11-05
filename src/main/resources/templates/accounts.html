@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Email Accounts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #5568d3;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .accounts-grid {
+            display: grid;
+            gap: 20px;
+        }
+        .account-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+        .account-info h3 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .account-email {
+            color: #666;
+            font-size: 14px;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .account-details {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 14px;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #666;
+        }
+        .account-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .preset-btn {
+            padding: 8px 12px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .preset-btn:hover {
+            background: #5a6268;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>Email Accounts</h1>
+                <a href="/" style="color: #667eea; text-decoration: none;">← Back to Home</a>
+            </div>
+            <button class="btn" onclick="openAddModal()">+ Add Account</button>
+        </div>
+
+        <div class="accounts-grid">
+            <div th:if="${#lists.isEmpty(accounts)}" class="account-card">
+                <p style="text-align: center; color: #666;">No email accounts configured. Add one to get started!</p>
+            </div>
+
+            <div th:each="account : ${accounts}" class="account-card">
+                <div class="account-header">
+                    <div class="account-info">
+                        <h3 th:text="${account.displayName}">Account Name</h3>
+                        <div class="account-email" th:text="${account.emailAddress}">email@example.com</div>
+                    </div>
+                    <span class="status-badge"
+                          th:classappend="${account.active ? 'status-active' : 'status-inactive'}"
+                          th:text="${account.active ? 'Active' : 'Inactive'}">Active</span>
+                </div>
+
+                <div class="account-details">
+                    <div class="detail-row">
+                        <span class="detail-label">IMAP:</span>
+                        <span th:text="${account.imapHost + ':' + account.imapPort}">imap.example.com:993</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">SMTP:</span>
+                        <span th:text="${account.smtpHost + ':' + account.smtpPort}">smtp.example.com:587</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">SSL:</span>
+                        <span th:text="${account.useSSL ? 'Enabled' : 'Disabled'}">Enabled</span>
+                    </div>
+                </div>
+
+                <div class="account-actions">
+                    <a th:href="@{/conversations/{id}(id=${account.id})}" class="btn btn-sm">View Conversations</a>
+                    <button class="btn btn-sm" th:onclick="'toggleAccount(' + ${account.id} + ', ' + ${!account.active} + ')'"
+                            th:text="${account.active ? 'Deactivate' : 'Activate'}">Toggle</button>
+                    <button class="btn btn-sm btn-danger" th:onclick="'deleteAccount(' + ${account.id} + ')'">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Account Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Email Account</h2>
+
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="fillGmail()">Gmail</button>
+                <button class="preset-btn" onclick="fillOutlook()">Outlook</button>
+                <button class="preset-btn" onclick="fillYahoo()">Yahoo</button>
+            </div>
+
+            <form id="addForm" onsubmit="return addAccount(event)">
+                <div class="form-group">
+                    <label>Display Name *</label>
+                    <input type="text" name="displayName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address *</label>
+                    <input type="email" name="emailAddress" required>
+                </div>
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label>IMAP Host *</label>
+                    <input type="text" name="imapHost" required>
+                </div>
+                <div class="form-group">
+                    <label>IMAP Port *</label>
+                    <input type="number" name="imapPort" value="993" required>
+                </div>
+                <div class="form-group">
+                    <label>SMTP Host *</label>
+                    <input type="text" name="smtpHost" required>
+                </div>
+                <div class="form-group">
+                    <label>SMTP Port *</label>
+                    <input type="number" name="smtpPort" value="587" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="useSSL" checked> Use SSL
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" style="background: #6c757d;" onclick="closeAddModal()">Cancel</button>
+                    <button type="submit" class="btn">Add Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openAddModal() {
+            document.getElementById('addModal').classList.add('active');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+            document.getElementById('addForm').reset();
+        }
+
+        function fillGmail() {
+            const form = document.getElementById('addForm');
+            form.imapHost.value = 'imap.gmail.com';
+            form.imapPort.value = '993';
+            form.smtpHost.value = 'smtp.gmail.com';
+            form.smtpPort.value = '587';
+            form.useSSL.checked = true;
+        }
+
+        function fillOutlook() {
+            const form = document.getElementById('addForm');
+            form.imapHost.value = 'outlook.office365.com';
+            form.imapPort.value = '993';
+            form.smtpHost.value = 'smtp.office365.com';
+            form.smtpPort.value = '587';
+            form.useSSL.checked = true;
+        }
+
+        function fillYahoo() {
+            const form = document.getElementById('addForm');
+            form.imapHost.value = 'imap.mail.yahoo.com';
+            form.imapPort.value = '993';
+            form.smtpHost.value = 'smtp.mail.yahoo.com';
+            form.smtpPort.value = '587';
+            form.useSSL.checked = true;
+        }
+
+        async function addAccount(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const data = {
+                displayName: formData.get('displayName'),
+                emailAddress: formData.get('emailAddress'),
+                username: formData.get('username'),
+                password: formData.get('password'),
+                imapHost: formData.get('imapHost'),
+                imapPort: parseInt(formData.get('imapPort')),
+                smtpHost: formData.get('smtpHost'),
+                smtpPort: parseInt(formData.get('smtpPort')),
+                useSSL: formData.get('useSSL') === 'on'
+            };
+
+            try {
+                const response = await fetch('/api/accounts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Error: ' + (error.error || 'Failed to add account'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+            return false;
+        }
+
+        async function toggleAccount(id, active) {
+            try {
+                const response = await fetch(`/api/accounts/${id}/toggle?active=${active}`, {
+                    method: 'PATCH'
+                });
+
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Error toggling account status');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function deleteAccount(id) {
+            if (!confirm('Are you sure you want to delete this account? This will also delete all associated conversations.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/accounts/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok || response.status === 204) {
+                    location.reload();
+                } else {
+                    alert('Error deleting account');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
