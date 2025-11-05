@@ -29,20 +29,29 @@ public class EmailSenderService {
             props.put("mail.smtp.port", account.getSmtpPort());
             props.put("mail.debug", "false"); // Set to true for JavaMail debug output
 
-            // Port 587 uses STARTTLS, Port 465 uses SSL
+            // Port-based configuration takes priority (587=STARTTLS, 465=SSL)
             if (account.getSmtpPort() == 587) {
-                // STARTTLS for port 587
+                // STARTTLS for port 587 (Outlook, Gmail, Yahoo standard)
                 props.put("mail.smtp.starttls.enable", "true");
                 props.put("mail.smtp.starttls.required", "true");
                 props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
-            } else if (account.getSmtpPort() == 465 || account.isUseSSL()) {
-                // SSL for port 465 or if explicitly enabled
+                logger.debug("Using STARTTLS for port 587");
+            } else if (account.getSmtpPort() == 465) {
+                // SSL for port 465
                 props.put("mail.smtp.ssl.enable", "true");
                 props.put("mail.smtp.ssl.trust", "*");
                 props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+                logger.debug("Using SSL for port 465");
+            } else if (account.isUseSSL()) {
+                // SSL for other ports if explicitly enabled
+                props.put("mail.smtp.ssl.enable", "true");
+                props.put("mail.smtp.ssl.trust", "*");
+                props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+                logger.debug("Using SSL for port {} (useSSL enabled)", account.getSmtpPort());
             } else {
                 // Enable STARTTLS for other ports as fallback
                 props.put("mail.smtp.starttls.enable", "true");
+                logger.debug("Using STARTTLS as fallback for port {}", account.getSmtpPort());
             }
 
             logger.debug("Creating SMTP session with authentication");
