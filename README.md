@@ -2,6 +2,8 @@
 
 An intelligent email automation service that uses local LLMs (via Ollama) to automatically respond to emails. The service monitors multiple email accounts, processes emails with specific subject filters, maintains conversation context, and generates AI-powered responses.
 
+> **🐳 Quick Start with Docker**: The easiest way to run this application is with Docker Compose. See [Docker Setup Guide](DOCKER_SETUP.md) for detailed instructions.
+
 ## Features
 
 - **Multi-Account Support**: Manage multiple email accounts (Gmail, Outlook, Yahoo, etc.) from a single dashboard
@@ -30,40 +32,52 @@ An intelligent email automation service that uses local LLMs (via Ollama) to aut
 
 ## Prerequisites
 
-- Java 21 or higher
-- Docker and Docker Compose (for Ollama and PostgreSQL)
+**For Docker (Recommended)**:
+- Docker and Docker Compose
 - Email account(s) with IMAP/SMTP access enabled
   - For Gmail: Enable "App Passwords" (requires 2FA)
-  - For Outlook: May require app-specific password
+  - For Outlook/Hotmail: Create app password AND enable IMAP
   - For Yahoo: Generate app password from account security
+
+**For Local Development**:
+- Java 21 or higher
+- Docker and Docker Compose (for Ollama and PostgreSQL)
 
 ## Quick Start
 
-### 1. Start Required Services
+### Option 1: Docker Compose (Recommended)
 
-Start Ollama and PostgreSQL using Docker Compose:
+The easiest way to get started:
 
 ```bash
+# 1. Clone and navigate to project
+git clone https://github.com/iv9eni/ai-email-chat.git
+cd ai-email-chat
+
+# 2. Start all services (app, Ollama, PostgreSQL)
 docker-compose up -d
+
+# 3. Initialize Ollama with AI model
+./init-ollama.sh
+
+# 4. Open web interface
+open http://localhost:8080
 ```
 
-### 2. Pull Ollama Model
+**That's it!** See [Docker Setup Guide](DOCKER_SETUP.md) for detailed instructions and configuration options.
 
-Download the AI model (default: llama3.2):
+### Option 2: Local Development
 
-```bash
-docker exec -it $(docker ps -qf "name=ollama") ollama pull llama3.2
-```
-
-Or use a different model by updating `application.yml` and pulling that model:
+If you prefer to run the Spring Boot app directly:
 
 ```bash
-docker exec -it $(docker ps -qf "name=ollama") ollama pull mistral
-```
+# 1. Start dependencies (Ollama and PostgreSQL)
+docker-compose up -d ollama postgres
 
-### 3. Build and Run the Application
+# 2. Pull Ollama model
+docker exec ai-email-ollama ollama pull llama2
 
-```bash
+# 3. Run the application
 ./gradlew bootRun
 ```
 
