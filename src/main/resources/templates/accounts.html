@@ -311,7 +311,14 @@
             form.imapPort.value = '993';
             form.smtpHost.value = 'smtp.office365.com';
             form.smtpPort.value = '587';
-            form.useSSL.checked = true;
+            form.useSSL.checked = true;  // For IMAP 993; SMTP 587 uses STARTTLS automatically
+            alert('IMPORTANT for Outlook/Hotmail:\n\n' +
+                  '1. Enable IMAP in Outlook settings\n' +
+                  '2. Generate an App Password at:\n' +
+                  '   account.microsoft.com/security\n' +
+                  '3. Use your EMAIL as username\n' +
+                  '4. Use APP PASSWORD (not your regular password)\n\n' +
+                  'IMAP must be enabled in your Outlook.com settings!');
         }
 
         function fillYahoo() {

@@ -25,14 +25,24 @@ public class EmailSenderService {
         try {
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", account.getSmtpHost());
             props.put("mail.smtp.port", account.getSmtpPort());
             props.put("mail.debug", "false"); // Set to true for JavaMail debug output
 
-            if (account.isUseSSL()) {
+            // Port 587 uses STARTTLS, Port 465 uses SSL
+            if (account.getSmtpPort() == 587) {
+                // STARTTLS for port 587
+                props.put("mail.smtp.starttls.enable", "true");
+                props.put("mail.smtp.starttls.required", "true");
+                props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+            } else if (account.getSmtpPort() == 465 || account.isUseSSL()) {
+                // SSL for port 465 or if explicitly enabled
                 props.put("mail.smtp.ssl.enable", "true");
                 props.put("mail.smtp.ssl.trust", "*");
+                props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+            } else {
+                // Enable STARTTLS for other ports as fallback
+                props.put("mail.smtp.starttls.enable", "true");
             }
 
             logger.debug("Creating SMTP session with authentication");
