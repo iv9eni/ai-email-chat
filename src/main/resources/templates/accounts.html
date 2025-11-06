@@ -262,7 +262,27 @@
                 <h1>Email Accounts</h1>
                 <a href="/" style="color: #667eea; text-decoration: none;">← Back to Home</a>
             </div>
-            <button class="btn" onclick="openAddModal()">+ Add Account</button>
+            <button class="btn" onclick="openAddModal()">+ Add Account (Manual)</button>
+        </div>
+
+        <!-- OAuth2 Connect Options -->
+        <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: #333;">🔐 Quick Connect with OAuth2</h3>
+            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Connect your email account securely without entering passwords. OAuth2 is required for Outlook/Hotmail and recommended for all providers.</p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="/oauth2/authorize/microsoft" class="btn" style="display: inline-block;">
+                    <span style="font-size: 18px;">📧</span> Connect Microsoft (Outlook/Hotmail)
+                </a>
+                <a href="/oauth2/authorize/google" class="btn" style="display: inline-block; background: #db4437;">
+                    <span style="font-size: 18px;">📧</span> Connect Google (Gmail)
+                </a>
+                <a href="/oauth2/authorize/yahoo" class="btn" style="display: inline-block; background: #6001d2;">
+                    <span style="font-size: 18px;">📧</span> Connect Yahoo Mail
+                </a>
+            </div>
+            <p style="color: #999; font-size: 12px; margin-top: 15px; margin-bottom: 0;">
+                <strong>Note:</strong> Google and Yahoo OAuth2 providers will be enabled in the next phase. Microsoft is ready to use!
+            </p>
         </div>
 
         <div class="accounts-grid">
@@ -283,6 +303,21 @@
 
                 <div class="account-details">
                     <div class="detail-row">
+                        <span class="detail-label">Auth Type:</span>
+                        <span>
+                            <span th:if="${account.authType == 'oauth2'}" style="color: #28a745; font-weight: 600;">
+                                🔐 OAuth2
+                                <span th:if="${account.provider != null}" th:text="'(' + ${account.provider} + ')'"></span>
+                            </span>
+                            <span th:if="${account.authType != 'oauth2'}" style="color: #ffc107;">🔑 Password</span>
+                        </span>
+                    </div>
+                    <div class="detail-row" th:if="${account.authType == 'oauth2' && account.tokenExpiresAt != null}">
+                        <span class="detail-label">Token Status:</span>
+                        <span th:if="${account.tokenExpired}" style="color: #dc3545;">⚠️ Expired</span>
+                        <span th:unless="${account.tokenExpired}" style="color: #28a745;">✓ Valid</span>
+                    </div>
+                    <div class="detail-row">
                         <span class="detail-label">IMAP:</span>
                         <span th:text="${account.imapHost + ':' + account.imapPort}">imap.example.com:993</span>
                     </div>
@@ -298,6 +333,11 @@
 
                 <div class="account-actions">
                     <a th:href="@{/conversations/{id}(id=${account.id})}" class="btn btn-sm">View Conversations</a>
+                    <a th:if="${account.authType == 'oauth2'}"
+                       th:href="@{/oauth2/reconnect/{id}(id=${account.id})}"
+                       class="btn btn-sm" style="background: #28a745;">
+                        🔄 Reconnect
+                    </a>
                     <button class="btn btn-sm" th:onclick="'toggleAccount(' + ${account.id} + ', ' + ${!account.active} + ')'"
                             th:text="${account.active ? 'Deactivate' : 'Activate'}">Toggle</button>
                     <button class="btn btn-sm btn-danger" th:onclick="'deleteAccount(' + ${account.id} + ')'">Delete</button>

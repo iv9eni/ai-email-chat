@@ -40,9 +40,24 @@ public class EmailAccount {
     @Column(nullable = false)
     private String username;
 
-    @NotBlank
+    @Column
+    private String password; // In production, this should be encrypted (nullable for OAuth accounts)
+
+    // OAuth2 fields
     @Column(nullable = false)
-    private String password; // In production, this should be encrypted
+    private String authType = "basic"; // "basic" or "oauth2"
+
+    @Column
+    private String provider; // "google", "microsoft", "yahoo" (for OAuth2 accounts)
+
+    @Column(length = 2048)
+    private String accessToken; // OAuth2 access token
+
+    @Column(length = 2048)
+    private String refreshToken; // OAuth2 refresh token
+
+    @Column
+    private LocalDateTime tokenExpiresAt; // When the access token expires
 
     @Column(nullable = false)
     private boolean useSSL = true;
@@ -185,5 +200,54 @@ public class EmailAccount {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getAuthType() {
+        return authType;
+    }
+
+    public void setAuthType(String authType) {
+        this.authType = authType;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public LocalDateTime getTokenExpiresAt() {
+        return tokenExpiresAt;
+    }
+
+    public void setTokenExpiresAt(LocalDateTime tokenExpiresAt) {
+        this.tokenExpiresAt = tokenExpiresAt;
+    }
+
+    // Helper methods for OAuth2
+    public boolean isOAuth2() {
+        return "oauth2".equals(authType);
+    }
+
+    public boolean isTokenExpired() {
+        return tokenExpiresAt != null && LocalDateTime.now().isAfter(tokenExpiresAt);
     }
 }

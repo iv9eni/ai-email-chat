@@ -2,6 +2,7 @@ package ai.email.processor.service;
 
 import ai.email.processor.entity.Conversation;
 import ai.email.processor.entity.EmailAccount;
+import ai.email.processor.oauth2.OAuth2Authenticator;
 import jakarta.mail.*;
 import jakarta.mail.internet.MimeMultipart;
 import jakarta.mail.search.FlagTerm;
@@ -23,16 +24,19 @@ public class EmailReceiverService {
     private final EmailAccountService emailAccountService;
     private final ConversationService conversationService;
     private final EmailSenderService emailSenderService;
+    private final OAuth2Authenticator oauth2Authenticator;
 
     @Value("${ai.email.chat.subject-filter:[AI_REQUEST]}")
     private String subjectFilter;
 
     public EmailReceiverService(EmailAccountService emailAccountService,
                                ConversationService conversationService,
-                               EmailSenderService emailSenderService) {
+                               EmailSenderService emailSenderService,
+                               OAuth2Authenticator oauth2Authenticator) {
         this.emailAccountService = emailAccountService;
         this.conversationService = conversationService;
         this.emailSenderService = emailSenderService;
+        this.oauth2Authenticator = oauth2Authenticator;
     }
 
     @Scheduled(fixedDelayString = "${ai.email.chat.poll-rate:60000}")
@@ -60,29 +64,38 @@ public class EmailReceiverService {
 
     private void processAccountEmails(EmailAccount account) throws MessagingException, IOException {
         logger.debug("Setting up IMAP connection for {}", account.getEmailAddress());
-        logger.debug("IMAP Settings - Host: {}, Port: {}, SSL: {}, Username: {}",
-            account.getImapHost(), account.getImapPort(), account.isUseSSL(), account.getUsername());
+        logger.debug("IMAP Settings - Host: {}, Port: {}, SSL: {}, Username: {}, AuthType: {}",
+            account.getImapHost(), account.getImapPort(), account.isUseSSL(), account.getUsername(), account.getAuthType());
 
-        Properties props = new Properties();
-        props.put("mail.store.protocol", account.isUseSSL() ? "imaps" : "imap");
-        props.put("mail.imap.host", account.getImapHost());
-        props.put("mail.imap.port", account.getImapPort());
-        props.put("mail.debug", "false"); // Set to true for even more detailed mail debugging
-
-        if (account.isUseSSL()) {
-            props.put("mail.imap.ssl.enable", "true");
-            props.put("mail.imap.ssl.trust", "*");
-        } else {
-            props.put("mail.imap.starttls.enable", "true");
-        }
-
-        Session session = Session.getInstance(props);
         Store store = null;
 
         try {
             logger.debug("Connecting to IMAP server...");
-            store = session.getStore();
-            store.connect(account.getImapHost(), account.getUsername(), account.getPassword());
+
+            // Use OAuth2 or basic authentication based on account type
+            if (account.isOAuth2()) {
+                logger.info("Using OAuth2 authentication for {}", account.getEmailAddress());
+                store = oauth2Authenticator.connectImap(account);
+            } else {
+                logger.info("Using basic authentication for {}", account.getEmailAddress());
+                Properties props = new Properties();
+                props.put("mail.store.protocol", account.isUseSSL() ? "imaps" : "imap");
+                props.put("mail.imap.host", account.getImapHost());
+                props.put("mail.imap.port", account.getImapPort());
+                props.put("mail.debug", "false");
+
+                if (account.isUseSSL()) {
+                    props.put("mail.imap.ssl.enable", "true");
+                    props.put("mail.imap.ssl.trust", "*");
+                } else {
+                    props.put("mail.imap.starttls.enable", "true");
+                }
+
+                Session session = Session.getInstance(props);
+                store = session.getStore();
+                store.connect(account.getImapHost(), account.getUsername(), account.getPassword());
+            }
+
             logger.info("✓ Successfully connected to IMAP server for {}", account.getEmailAddress());
 
             logger.debug("Opening INBOX folder...");

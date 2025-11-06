@@ -31,6 +31,16 @@ dependencies {
 	implementation("org.springframework.integration:spring-integration-mail")
 	implementation("org.springframework.integration:spring-integration-core")
 	implementation("jakarta.mail:jakarta.mail-api")
+	implementation("org.eclipse.angus:angus-mail:2.0.3") // Jakarta Mail implementation
+
+	// OAuth2 dependencies
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+	implementation("com.microsoft.graph:microsoft-graph:6.15.0")
+	implementation("com.azure:azure-identity:1.13.2")
+	implementation("com.google.api-client:google-api-client:2.7.0")
+	implementation("com.google.oauth-client:google-oauth-client-jetty:1.36.0")
+	implementation("com.google.apis:google-api-services-gmail:v1-rev20240520-2.0.0")
+
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("org.postgresql:postgresql")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
