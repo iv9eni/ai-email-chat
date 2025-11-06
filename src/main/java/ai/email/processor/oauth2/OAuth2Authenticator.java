@@ -1,8 +1,6 @@
 package ai.email.processor.oauth2;
 
 import ai.email.processor.entity.EmailAccount;
-import com.sun.mail.imap.IMAPStore;
-import com.sun.mail.smtp.SMTPTransport;
 import jakarta.mail.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,9 +96,9 @@ public class OAuth2Authenticator {
 
         // Connect using OAuth2
         // For XOAUTH2, we pass the access token as the password
-        ((IMAPStore) store).connect(account.getImapHost(),
-                                     account.getUsername(),
-                                     accessToken);
+        store.connect(account.getImapHost(),
+                      account.getUsername(),
+                      accessToken);
 
         logger.info("Successfully connected to IMAP using OAuth2 for {}", account.getEmailAddress());
         return store;
@@ -124,9 +122,9 @@ public class OAuth2Authenticator {
 
         // Connect using OAuth2
         // For XOAUTH2, we pass the access token as the password
-        ((SMTPTransport) transport).connect(account.getSmtpHost(),
-                                            account.getUsername(),
-                                            accessToken);
+        transport.connect(account.getSmtpHost(),
+                          account.getUsername(),
+                          accessToken);
 
         logger.info("Successfully connected to SMTP using OAuth2 for {}", account.getEmailAddress());
         return transport;

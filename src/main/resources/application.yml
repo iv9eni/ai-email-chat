@@ -2,6 +2,11 @@ spring:
   application:
     name: "processor"
 
+  security:
+    user:
+      name: admin
+      password: admin
+
   datasource:
     url: jdbc:h2:file:./data/emailchat
     driver-class-name: org.h2.Driver

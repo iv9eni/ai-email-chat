@@ -31,6 +31,7 @@ dependencies {
 	implementation("org.springframework.integration:spring-integration-mail")
 	implementation("org.springframework.integration:spring-integration-core")
 	implementation("jakarta.mail:jakarta.mail-api")
+	implementation("org.eclipse.angus:angus-mail:2.0.3") // Jakarta Mail implementation
 
 	// OAuth2 dependencies
 	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
