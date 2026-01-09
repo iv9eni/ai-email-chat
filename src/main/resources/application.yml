@@ -2,6 +2,11 @@ spring:
   application:
     name: "processor"
 
+  security:
+    user:
+      name: admin
+      password: admin
+
   datasource:
     url: jdbc:h2:file:./data/emailchat
     driver-class-name: org.h2.Driver
@@ -39,6 +44,21 @@ ai:
       poll-rate: 60000
       # Subject prefix to filter emails
       subject-filter: "[AI_REQUEST]"
+
+app:
+  oauth2:
+    # Base URL for OAuth2 redirects (change in production)
+    redirect-base-url: http://localhost:8080
+    # Provider configurations - set these via environment variables in production
+    microsoft:
+      client-id: ${MICROSOFT_CLIENT_ID:your-client-id}
+      client-secret: ${MICROSOFT_CLIENT_SECRET:your-client-secret}
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:your-client-id}
+      client-secret: ${GOOGLE_CLIENT_SECRET:your-client-secret}
+    yahoo:
+      client-id: ${YAHOO_CLIENT_ID:your-client-id}
+      client-secret: ${YAHOO_CLIENT_SECRET:your-client-secret}
 
 ollama:
   base-url: http://localhost:11434

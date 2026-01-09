@@ -1,6 +1,7 @@
 package ai.email.processor.service;
 
 import ai.email.processor.entity.EmailAccount;
+import ai.email.processor.oauth2.OAuth2Authenticator;
 import jakarta.mail.*;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -14,44 +15,58 @@ import java.util.Properties;
 public class EmailSenderService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailSenderService.class);
+    private final OAuth2Authenticator oauth2Authenticator;
+
+    public EmailSenderService(OAuth2Authenticator oauth2Authenticator) {
+        this.oauth2Authenticator = oauth2Authenticator;
+    }
 
     public void sendEmail(EmailAccount account, String to, String subject, String body) {
         logger.debug("Preparing to send email from {} to {}", account.getEmailAddress(), to);
-        logger.debug("SMTP Settings - Host: {}, Port: {}, SSL: {}",
-            account.getSmtpHost(), account.getSmtpPort(), account.isUseSSL());
+        logger.debug("SMTP Settings - Host: {}, Port: {}, SSL: {}, AuthType: {}",
+            account.getSmtpHost(), account.getSmtpPort(), account.isUseSSL(), account.getAuthType());
         logger.debug("Subject: {}", subject);
         logger.debug("Body length: {} characters", body.length());
 
         try {
-            Properties props = new Properties();
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.host", account.getSmtpHost());
-            props.put("mail.smtp.port", account.getSmtpPort());
-            props.put("mail.debug", "false"); // Set to true for JavaMail debug output
+            Transport transport = null;
+            Session session;
 
-            // Port 587 uses STARTTLS, Port 465 uses SSL
-            if (account.getSmtpPort() == 587) {
-                // STARTTLS for port 587
-                props.put("mail.smtp.starttls.enable", "true");
-                props.put("mail.smtp.starttls.required", "true");
-                props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
-            } else if (account.getSmtpPort() == 465 || account.isUseSSL()) {
-                // SSL for port 465 or if explicitly enabled
-                props.put("mail.smtp.ssl.enable", "true");
-                props.put("mail.smtp.ssl.trust", "*");
-                props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+            if (account.isOAuth2()) {
+                // OAuth2 authentication
+                logger.info("Using OAuth2 authentication for SMTP: {}", account.getEmailAddress());
+                transport = oauth2Authenticator.connectSmtp(account);
+                session = oauth2Authenticator.createSmtpSession(account);
             } else {
-                // Enable STARTTLS for other ports as fallback
-                props.put("mail.smtp.starttls.enable", "true");
-            }
+                // Basic authentication
+                logger.info("Using basic authentication for SMTP: {}", account.getEmailAddress());
+                Properties props = new Properties();
+                props.put("mail.smtp.auth", "true");
+                props.put("mail.smtp.host", account.getSmtpHost());
+                props.put("mail.smtp.port", account.getSmtpPort());
+                props.put("mail.debug", "false");
 
-            logger.debug("Creating SMTP session with authentication");
-            Session session = Session.getInstance(props, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(account.getUsername(), account.getPassword());
+                // Port 587 uses STARTTLS, Port 465 uses SSL
+                if (account.getSmtpPort() == 587) {
+                    props.put("mail.smtp.starttls.enable", "true");
+                    props.put("mail.smtp.starttls.required", "true");
+                    props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+                } else if (account.getSmtpPort() == 465 || account.isUseSSL()) {
+                    props.put("mail.smtp.ssl.enable", "true");
+                    props.put("mail.smtp.ssl.trust", "*");
+                    props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+                } else {
+                    props.put("mail.smtp.starttls.enable", "true");
                 }
-            });
+
+                logger.debug("Creating SMTP session with basic authentication");
+                session = Session.getInstance(props, new Authenticator() {
+                    @Override
+                    protected PasswordAuthentication getPasswordAuthentication() {
+                        return new PasswordAuthentication(account.getUsername(), account.getPassword());
+                    }
+                });
+            }
 
             logger.debug("Building email message");
             Message message = new MimeMessage(session);
@@ -61,7 +76,14 @@ public class EmailSenderService {
             message.setText(body);
 
             logger.debug("Sending email via SMTP...");
-            Transport.send(message);
+            if (account.isOAuth2()) {
+                // For OAuth2, we already have a connected transport
+                transport.sendMessage(message, message.getAllRecipients());
+                transport.close();
+            } else {
+                // For basic auth, use Transport.send
+                Transport.send(message);
+            }
 
             logger.info("✓ Email sent successfully from {} to {}", account.getEmailAddress(), to);
         } catch (AuthenticationFailedException e) {

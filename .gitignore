@@ -35,3 +35,13 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Application Data ###
+data/
+logs/
+*.log
+
+### Environment Variables ###
+.env
+.env.local
+.env.*.local
